@@ -30,6 +30,18 @@ enum ApplicationStatus {
   REJECTED
 }
 
+enum ProductType {
+  PHYSICAL
+  DIGITAL
+  COLLECTIBLE
+}
+
+enum ProductStatus {
+  ACTIVE
+  OUT_OF_STOCK
+  ARCHIVED
+}
+
 model User {
   id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email         String    @unique
@@ -44,6 +56,7 @@ model User {
   authAccounts   AuthAccount[]
   sessions       Session[]
   sellerProfile  SellerProfile?
+  products       Product[]
 
   @@map("users")
 }
@@ -74,11 +87,12 @@ model Session {
 }
 
 model Category {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name      String   @unique
-  slug      String   @unique
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @map("updated_at")
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String    @unique
+  slug      String    @unique
+  products  Product[]
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @default(now()) @map("updated_at")
 
   @@map("categories")
 }
@@ -94,4 +108,35 @@ model SellerProfile {
   updatedAt   DateTime          @default(now()) @map("updated_at")
 
   @@map("seller_profiles")
+}
+
+model Product {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sellerId    String        @map("seller_id") @db.Uuid
+  seller      User          @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  categoryId  String        @map("category_id") @db.Uuid
+  category    Category      @relation(fields: [categoryId], references: [id])
+  title       String
+  description String
+  price       Decimal       @db.Decimal(10, 2)
+  type        ProductType
+  stock       Int           @default(0)
+  fileUrl     String?       @map("file_url")
+  status      ProductStatus @default(ACTIVE) @map("status")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @default(now()) @map("updated_at")
+
+  images      ProductImage[]
+
+  @@map("products")
+}
+
+model ProductImage {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  productId String  @map("product_id") @db.Uuid
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  altText   String? @map("alt_text")
+
+  @@map("product_images")
 }

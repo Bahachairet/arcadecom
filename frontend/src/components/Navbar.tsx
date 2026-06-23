@@ -13,7 +13,13 @@ import {
 import { Grid3x3, Store, Shield, LogOut, Clock } from 'lucide-react';
 import loogo from '@/assets/glogo.png';
 
-const navLinks = ["Explore", "Drops", "Collectibles", "Digital Art", "Creators", "How it Works"];
+const navLinks = [
+  { label: "Explore", href: "/products" },
+  { label: "Drops", href: "/products?type=COLLECTIBLE" },
+  { label: "Collectibles", href: "/products?type=COLLECTIBLE" },
+  { label: "Digital Art", href: "/products?type=DIGITAL" },
+  { label: "Creators", href: "/products" },
+];
 
 function getInitials(name: string) {
   return name
@@ -49,8 +55,8 @@ export default function Navbar() {
       </Link>
       <nav className="hidden items-center gap-8 lg:flex">
         {navLinks.map((l) => (
-          <Link key={l} to="/" className="text-sm font-medium text-foreground/80 hover:text-foreground">
-            {l}
+          <Link key={l.label} to={l.href} className="text-sm font-medium text-foreground/80 hover:text-foreground">
+            {l.label}
           </Link>
         ))}
       </nav>
