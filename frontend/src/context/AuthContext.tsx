@@ -2,8 +2,10 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from '
 import api from '@/lib/api';
 
 interface User {
+  id: string;
   displayName: string;
   email: string;
+  role: "buyer" | "seller" | "admin";
 }
 
 interface AuthContextType {

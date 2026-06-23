@@ -62,12 +62,7 @@ router.get(
       req.user.sessionId
     );
 
-    res.json({
-      message:
-        "Google login successful",
-      user:
-        req.user.user,
-    });
+    res.redirect(process.env.CLIENT_URL);
   }
 );
 

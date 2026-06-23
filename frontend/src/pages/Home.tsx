@@ -155,7 +155,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans">
       {/* Hero */}
-      <section className="mx-auto max-w-7xl px-6 pb-8 pt-6">
+      <section className="mx-auto max-w-[1800px] px-6 pb-8 pt-6">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-4">
           <div className="pt-6">
             <p className="mb-6 text-xs font-semibold tracking-[0.2em] text-muted-foreground">
@@ -243,7 +243,7 @@ export default function Home() {
 
       {/* Trending strip */}
       <section className="bg-[oklch(0.88_0.2_142)]">
-        <div className="mx-auto flex max-w-7xl items-center gap-8 overflow-hidden px-6 py-3">
+        <div className="mx-auto flex max-w-[1800px] items-center gap-8 overflow-hidden px-6 py-3">
           <span className="text-xs font-bold tracking-wider">TRENDING</span>
           <div className="flex flex-1 items-center gap-8 overflow-hidden">
             {trending.map((t) => (
@@ -263,7 +263,7 @@ export default function Home() {
       </section>
 
       {/* Explore the Culture */}
-      <section className="mx-auto max-w-7xl px-6 py-20">
+      <section className="mx-auto max-w-[1800px] px-6 py-20">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
           <div>
             <h2 className="font-display text-4xl font-bold leading-tight">
@@ -303,7 +303,7 @@ export default function Home() {
       </section>
 
       {/* Built for collectors */}
-      <section className="mx-auto max-w-7xl px-6 pb-20">
+      <section className="mx-auto max-w-[1800px] px-6 pb-20">
         <div className="relative overflow-hidden rounded-3xl bg-primary p-10 text-primary-foreground">
           <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "24px 24px" }} />
           <div className="relative grid grid-cols-1 gap-10 lg:grid-cols-[1fr_2fr]">
@@ -331,7 +331,7 @@ export default function Home() {
       </section>
 
       {/* Featured drops */}
-      <section className="mx-auto max-w-7xl px-6 pb-20">
+      <section className="mx-auto max-w-[1800px] px-6 pb-20">
         <div className="flex items-end justify-between">
           <div>
             <h2 className="font-display text-4xl font-bold">Featured Drops</h2>
@@ -385,7 +385,7 @@ export default function Home() {
       </section>
 
       {/* Collector Spotlight */}
-      <section className="mx-auto max-w-7xl px-6 pb-20">
+      <section className="mx-auto max-w-[1800px] px-6 pb-20">
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
           <div>
             <h2 className="font-display text-4xl font-bold">Collector Spotlight</h2>
@@ -417,7 +417,7 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section className="mx-auto max-w-7xl px-6 pb-16">
+      <section className="mx-auto max-w-[1800px] px-6 pb-16">
         <div className="rounded-3xl bg-neutral-900 p-10 text-white">
           <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[1fr_1.2fr_1fr]">
             <div>
