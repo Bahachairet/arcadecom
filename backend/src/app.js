@@ -9,6 +9,7 @@ const authRoutes = require('../modules/auth/auth.routes');
 const sellerRoutes = require('../modules/sellers/seller.routes');
 const categoryRoutes = require('../modules/categories/category.routes');
 const productRoutes = require('../modules/products/product.routes');
+const cartRoutes = require('../modules/cart/cart.routes');
 const passport = require(
   "../config/passport"
 );
@@ -36,5 +37,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/sellers', sellerRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
 
 module.exports = app;

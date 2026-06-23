@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
+import { CartProvider } from '@/context/CartContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Home from '@/pages/Home';
@@ -9,13 +10,15 @@ import BecomeASeller from '@/pages/BecomeASeller';
 import AdminDashboard from '@/pages/AdminDashboard';
 import Products from '@/pages/Products';
 import ProductDetail from '@/pages/ProductDetail';
+import CartPage from '@/pages/CartPage';
 import SellerDashboard from '@/pages/SellerDashboard';
 import CreateProduct from '@/pages/CreateProduct';
 
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <CartProvider>
+        <Router>
         <Routes>
           {/* Public layout with Navbar + Footer */}
           <Route
@@ -82,12 +85,23 @@ function App() {
               </div>
             }
           />
+          <Route
+            path="/cart"
+            element={
+              <div className="min-h-screen flex flex-col bg-background text-foreground">
+                <Navbar />
+                <main className="flex-grow"><CartPage /></main>
+                <Footer />
+              </div>
+            }
+          />
 
           {/* Seller dashboard layout (self-contained sidebar) */}
           <Route path="/seller/dashboard" element={<SellerDashboard />} />
           <Route path="/seller/products/new" element={<CreateProduct />} />
         </Routes>
-      </Router>
+        </Router>
+      </CartProvider>
     </AuthProvider>
   );
 }

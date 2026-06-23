@@ -10,7 +10,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Grid3x3, Store, Shield, LogOut, Clock } from 'lucide-react';
+import { Grid3x3, Store, Shield, LogOut, Clock, ShoppingCart } from 'lucide-react';
+import { useCart } from '@/context/CartContext';
 import loogo from '@/assets/glogo.png';
 
 const navLinks = [
@@ -32,6 +33,7 @@ function getInitials(name: string) {
 
 export default function Navbar() {
   const { user, logout } = useAuth();
+  const { itemCount, clearLocalCart } = useCart();
   const navigate = useNavigate();
   const [sellerStatus, setSellerStatus] = useState<string | null>(null);
 
@@ -61,6 +63,19 @@ export default function Navbar() {
         ))}
       </nav>
       <div className="flex items-center gap-2">
+        {user && (
+          <button
+            onClick={() => navigate('/cart')}
+            className="relative rounded-md border border-border p-2 hover:bg-muted"
+          >
+            <ShoppingCart className="h-4 w-4" />
+            {itemCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                {itemCount > 99 ? '99+' : itemCount}
+              </span>
+            )}
+          </button>
+        )}
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -107,6 +122,7 @@ export default function Navbar() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
+                  clearLocalCart();
                   logout();
                   navigate('/');
                 }}

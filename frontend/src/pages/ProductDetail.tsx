@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
+import { useCart } from '@/context/CartContext';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Package, Download, Gem } from 'lucide-react';
+import { ArrowLeft, Package, Download, Gem, CheckCircle } from 'lucide-react';
 
 interface ProductImage {
   id: string;
@@ -36,9 +38,13 @@ const API_BASE = 'http://localhost:5000';
 
 export default function ProductDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { addItem, loading: cartLoading } = useCart();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [added, setAdded] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -164,8 +170,23 @@ export default function ProductDetail() {
             )}
           </div>
 
-          <Button className="w-full" size="lg">
-            Add to Cart
+          <Button
+            className="w-full"
+            size="lg"
+            disabled={cartLoading || added}
+            onClick={async () => {
+              if (!user) {
+                navigate('/login');
+                return;
+              }
+              await addItem(product.id);
+              setAdded(true);
+              setTimeout(() => setAdded(false), 2000);
+            }}
+          >
+            {added ? (
+              <><CheckCircle className="mr-2 h-4 w-4" /> Added to Cart</>
+            ) : cartLoading ? 'Adding...' : 'Add to Cart'}
           </Button>
 
           <div className="mt-8">
