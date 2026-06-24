@@ -1,22 +1,52 @@
 import { useNavigate, Link } from 'react-router-dom';
-import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import {
+  selectCart,
+  selectItemCount,
+  selectCartTotal,
+  selectCartLoading,
+  updateCartItem,
+  removeCartItem,
+  clearCartItems,
+  clearCartLocally,
+} from '@/store/slices/cartSlice';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Plus, Minus, Trash2, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, Plus, Minus, Trash2, ShoppingBag, Coins } from 'lucide-react';
+import { useState } from 'react';
+import api from '@/lib/api';
 
 const API_BASE = 'http://localhost:5000';
 
 export default function CartPage() {
   const { user } = useAuth();
-  const { cart, itemCount, total, loading, updateQuantity, removeItem, clearCart } = useCart();
+  const dispatch = useAppDispatch();
+  const cart = useAppSelector(selectCart);
+  const itemCount = useAppSelector(selectItemCount);
+  const total = useAppSelector(selectCartTotal);
+  const loading = useAppSelector(selectCartLoading);
   const navigate = useNavigate();
+  const [checkingOut, setCheckingOut] = useState(false);
 
   if (!user) {
     navigate('/login');
     return null;
   }
+
+  const handleCheckout = async () => {
+    setCheckingOut(true);
+    try {
+      const res = await api.post('/orders/checkout');
+      dispatch(clearCartLocally());
+      navigate(`/orders/${res.data.order.id}`);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Checkout failed');
+    } finally {
+      setCheckingOut(false);
+    }
+  };
 
   return (
     <div className="mx-auto max-w-[1800px] px-6 py-10">
@@ -82,7 +112,7 @@ export default function CartPage() {
                             size="icon"
                             className="h-7 w-7"
                             disabled={loading}
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            onClick={() => dispatch(updateCartItem({ itemId: item.id, quantity: item.quantity - 1 }))}
                           >
                             <Minus className="h-3 w-3" />
                           </Button>
@@ -92,7 +122,7 @@ export default function CartPage() {
                             size="icon"
                             className="h-7 w-7"
                             disabled={loading || item.quantity >= item.product.stock}
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() => dispatch(updateCartItem({ itemId: item.id, quantity: item.quantity + 1 }))}
                           >
                             <Plus className="h-3 w-3" />
                           </Button>
@@ -102,7 +132,7 @@ export default function CartPage() {
                           size="icon"
                           className="h-7 w-7 text-destructive"
                           disabled={loading}
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => dispatch(removeCartItem(item.id))}
                         >
                           <Trash2 className="h-3 w-3" />
                         </Button>
@@ -113,7 +143,7 @@ export default function CartPage() {
               );
             })}
 
-            <Button variant="outline" onClick={clearCart} disabled={loading}>
+            <Button variant="outline" onClick={() => dispatch(clearCartItems())} disabled={loading}>
               Clear Cart
             </Button>
           </div>
@@ -137,8 +167,14 @@ export default function CartPage() {
                   <span className="font-semibold">Total</span>
                   <span className="font-display text-xl font-bold">${total.toFixed(2)}</span>
                 </div>
-                <Button className="w-full" size="lg" disabled={loading}>
-                  Insert Coin
+                <Button
+                  className="w-full"
+                  size="lg"
+                  disabled={loading || checkingOut}
+                  onClick={handleCheckout}
+                >
+                  <Coins className="mr-2 h-4 w-4" />
+                  {checkingOut ? 'Processing...' : 'Insert Coin'}
                 </Button>
                 <p className="text-[11px] text-muted-foreground text-center">
                   No payment gateway connected yet. This will create the order directly.

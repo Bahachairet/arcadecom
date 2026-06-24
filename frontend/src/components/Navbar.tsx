@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { selectItemCount, clearCartLocally } from '@/store/slices/cartSlice';
 import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,8 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Grid3x3, Store, Shield, LogOut, Clock, ShoppingCart } from 'lucide-react';
-import { useCart } from '@/context/CartContext';
+import { Grid3x3, Store, Shield, LogOut, Clock, ShoppingCart, Package } from 'lucide-react';
 import loogo from '@/assets/glogo.png';
 
 const navLinks = [
@@ -33,7 +34,8 @@ function getInitials(name: string) {
 
 export default function Navbar() {
   const { user, logout } = useAuth();
-  const { itemCount, clearLocalCart } = useCart();
+  const dispatch = useAppDispatch();
+  const itemCount = useAppSelector(selectItemCount);
   const navigate = useNavigate();
   const [sellerStatus, setSellerStatus] = useState<string | null>(null);
 
@@ -89,6 +91,12 @@ export default function Navbar() {
                 <p className="text-xs text-muted-foreground">{user.email}</p>
               </div>
               <DropdownMenuSeparator />
+              {user.role === 'buyer' && (
+                <DropdownMenuItem onClick={() => navigate('/orders')}>
+                  <Package className="mr-2 h-4 w-4" />
+                  My Orders
+                </DropdownMenuItem>
+              )}
               {user.role === 'buyer' && !sellerStatus && (
                 <DropdownMenuItem onClick={() => navigate('/become-seller')}>
                   <Store className="mr-2 h-4 w-4" />
@@ -122,7 +130,7 @@ export default function Navbar() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
-                  clearLocalCart();
+                  dispatch(clearCartLocally());
                   logout();
                   navigate('/');
                 }}

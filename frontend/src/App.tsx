@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from '@/context/AuthContext';
-import { CartProvider } from '@/context/CartContext';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
+import { useAppDispatch } from '@/store/hooks';
+import { fetchCart } from '@/store/slices/cartSlice';
+import { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Home from '@/pages/Home';
@@ -13,12 +15,27 @@ import ProductDetail from '@/pages/ProductDetail';
 import CartPage from '@/pages/CartPage';
 import SellerDashboard from '@/pages/SellerDashboard';
 import CreateProduct from '@/pages/CreateProduct';
+import OrderDetail from '@/pages/OrderDetail';
+import BuyerOrders from '@/pages/BuyerOrders';
+
+function CartLoader() {
+  const { user } = useAuth();
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchCart());
+    }
+  }, [user, dispatch]);
+
+  return null;
+}
 
 function App() {
   return (
     <AuthProvider>
-      <CartProvider>
-        <Router>
+      <CartLoader />
+      <Router>
         <Routes>
           {/* Public layout with Navbar + Footer */}
           <Route
@@ -95,13 +112,32 @@ function App() {
               </div>
             }
           />
+          <Route
+            path="/orders"
+            element={
+              <div className="min-h-screen flex flex-col bg-background text-foreground">
+                <Navbar />
+                <main className="flex-grow"><BuyerOrders /></main>
+                <Footer />
+              </div>
+            }
+          />
+          <Route
+            path="/orders/:id"
+            element={
+              <div className="min-h-screen flex flex-col bg-background text-foreground">
+                <Navbar />
+                <main className="flex-grow"><OrderDetail /></main>
+                <Footer />
+              </div>
+            }
+          />
 
           {/* Seller dashboard layout (self-contained sidebar) */}
           <Route path="/seller/dashboard" element={<SellerDashboard />} />
           <Route path="/seller/products/new" element={<CreateProduct />} />
         </Routes>
         </Router>
-      </CartProvider>
     </AuthProvider>
   );
 }

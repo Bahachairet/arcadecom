@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
-import { useCart } from '@/context/CartContext';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { addItemToCart, selectCartLoading } from '@/store/slices/cartSlice';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Package, Download, Gem, CheckCircle } from 'lucide-react';
@@ -40,7 +41,8 @@ export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { addItem, loading: cartLoading } = useCart();
+  const dispatch = useAppDispatch();
+  const cartLoading = useAppSelector(selectCartLoading);
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -179,7 +181,7 @@ export default function ProductDetail() {
                 navigate('/login');
                 return;
               }
-              await addItem(product.id);
+              await dispatch(addItemToCart({ productId: product.id }));
               setAdded(true);
               setTimeout(() => setAdded(false), 2000);
             }}

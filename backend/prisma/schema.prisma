@@ -42,6 +42,12 @@ enum ProductStatus {
   ARCHIVED
 }
 
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email         String    @unique
@@ -58,6 +64,7 @@ model User {
   sellerProfile  SellerProfile?
   products       Product[]
   cart           Cart?
+  orders         Order[]       @relation("BuyerOrders")
 
   @@map("users")
 }
@@ -129,6 +136,7 @@ model Product {
 
   images      ProductImage[]
   cartItems   CartItem[]
+  orderItems  OrderItem[]
 
   @@map("products")
 }
@@ -164,4 +172,31 @@ model CartItem {
 
   @@unique([cartId, productId])
   @@map("cart_items")
+}
+
+model Order {
+  id          String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String      @map("user_id") @db.Uuid
+  user        User        @relation("BuyerOrders", fields: [userId], references: [id])
+  status      OrderStatus @default(COMPLETED)
+  total       Decimal     @db.Decimal(10, 2)
+  items       OrderItem[]
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @default(now()) @map("updated_at")
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId   String  @map("order_id") @db.Uuid
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String  @map("product_id") @db.Uuid
+  product   Product @relation(fields: [productId], references: [id])
+  sellerId  String  @map("seller_id") @db.Uuid
+  title     String
+  unitPrice Decimal @db.Decimal(10, 2) @map("unit_price")
+  quantity  Int
+
+  @@map("order_items")
 }

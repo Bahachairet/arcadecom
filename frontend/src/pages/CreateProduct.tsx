@@ -81,7 +81,7 @@ export default function CreateProduct() {
 
   return (
     <SidebarProvider>
-      <AppSidebar />
+      <AppSidebar activeTab="products" onTabChange={() => navigate('/seller/dashboard')} />
       <SidebarInset>
         <SiteHeader title="Create Product" />
         <div className="flex-1 p-6">
