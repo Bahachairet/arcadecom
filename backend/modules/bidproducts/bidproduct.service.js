@@ -56,8 +56,8 @@ const getSellerBidProducts = async (sellerId) => {
   return findMany({ sellerId });
 };
 
-const getActiveAuctions = async () => {
-  return findActive();
+const getActiveAuctions = async (limit = null) => {
+  return findActive(limit);
 };
 
 const getAllBidProducts = async (filters) => {

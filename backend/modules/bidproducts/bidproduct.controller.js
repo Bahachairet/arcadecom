@@ -42,7 +42,8 @@ const getSellerBidProductsHandler = async (req, res) => {
 
 const getActiveAuctionsHandler = async (req, res) => {
   try {
-    const bidProducts = await getActiveAuctions();
+    const limit = req.query.limit || null;
+    const bidProducts = await getActiveAuctions(limit);
     res.json({ bidProducts });
   } catch (error) {
     res.status(500).json({ message: error.message });

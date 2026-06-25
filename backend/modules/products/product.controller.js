@@ -6,10 +6,12 @@ const getAll = async (req, res) => {
       categoryId: req.query.categoryId,
       type: req.query.type,
       search: req.query.search,
+      sort: req.query.sort,
+      limit: req.query.limit,
     };
 
     const products = await productService.getAll(filters);
-    return res.json({ products });
+    return res.json({ products, total: products.length });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

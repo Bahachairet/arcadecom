@@ -14,3 +14,13 @@ build/
 
 # OS files
 .DS_Store
+
+# project tools
+graphify-out/
+AGENTS.md
+.opencode/
+.planning/
+backend/public/
+frontend/.agents/
+frontend/DESIGN.md
+null

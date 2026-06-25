@@ -25,10 +25,20 @@ const typeLabels: Record<string, string> = {
 };
 
 const typeBadgeClass: Record<string, string> = {
-  PHYSICAL: 'bg-[oklch(0.85_0.2_142)] text-black',
-  DIGITAL: 'bg-[oklch(0.55_0.24_265)] text-white',
-  COLLECTIBLE: 'bg-[oklch(0.88_0.18_92)] text-black',
+  PHYSICAL: 'bg-tint-lime text-black',
+  DIGITAL: 'bg-tint-periwinkle text-black',
+  COLLECTIBLE: 'bg-tint-salmon text-black',
 };
+
+/**
+ * Get thumbnail URL from original image path.
+ * Falls back to original if thumbnail doesn't exist.
+ */
+function getThumbnailUrl(url: string): string {
+  const ext = url.split('.').pop();
+  const base = url.replace(/\.[^.]+$/, '');
+  return `http://localhost:5000${base}_thumbnail.${ext}`;
+}
 
 export default function ProductCard({ product }: { product: Product }) {
   const img = product.images[0]?.url;
@@ -43,10 +53,14 @@ export default function ProductCard({ product }: { product: Product }) {
       <div className="relative aspect-square overflow-hidden bg-muted">
         {img ? (
           <img
-            src={`http://localhost:5000${img}`}
+            src={getThumbnailUrl(img)}
             alt={product.title}
             className="h-full w-full object-cover transition group-hover:scale-105"
             loading="lazy"
+            onError={(e) => {
+              // Fallback to original if thumbnail fails
+              (e.target as HTMLImageElement).src = `http://localhost:5000${img}`;
+            }}
           />
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground text-sm">

@@ -84,7 +84,7 @@ const findMany = async (filters = {}) => {
   });
 };
 
-const findActive = async () => {
+const findActive = async (limit = null) => {
   return prisma.bidProduct.findMany({
     where: {
       status: "ACTIVE",
@@ -96,6 +96,7 @@ const findActive = async () => {
       bids: { select: { id: true } },
     },
     orderBy: { endTime: "asc" },
+    ...(limit ? { take: parseInt(limit, 10) } : {}),
   });
 };
 

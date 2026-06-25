@@ -3,6 +3,7 @@ const router = express.Router();
 const productController = require("./product.controller");
 const { requireAuth, requireRole } = require("../../middleware/auth");
 const upload = require("../../middleware/upload");
+const { processUploads } = require("../../middleware/imageOptimize");
 
 router.get("/", productController.getAll);
 router.get("/seller", requireAuth, requireRole("seller"), productController.getSellerProducts);
@@ -13,6 +14,7 @@ router.post(
   requireAuth,
   requireRole("seller"),
   upload.array("images", 5),
+  processUploads,
   productController.create
 );
 
@@ -21,6 +23,7 @@ router.patch(
   requireAuth,
   requireRole("seller"),
   upload.array("images", 5),
+  processUploads,
   productController.update
 );
 

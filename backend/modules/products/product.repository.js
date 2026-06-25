@@ -18,6 +18,17 @@ const findAll = async (filters = {}) => {
     ];
   }
 
+  const orderBy = {};
+  if (filters.sort === "newest") {
+    orderBy.createdAt = "desc";
+  } else if (filters.sort === "price_asc") {
+    orderBy.price = "asc";
+  } else if (filters.sort === "price_desc") {
+    orderBy.price = "desc";
+  } else {
+    orderBy.createdAt = "desc";
+  }
+
   return prisma.product.findMany({
     where,
     include: {
@@ -25,7 +36,8 @@ const findAll = async (filters = {}) => {
       category: { select: { id: true, name: true, slug: true } },
       seller: { select: { id: true, displayName: true } },
     },
-    orderBy: { createdAt: "desc" },
+    orderBy,
+    ...(filters.limit ? { take: parseInt(filters.limit, 10) } : {}),
   });
 };
 
