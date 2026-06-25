@@ -33,11 +33,12 @@ const typeBadgeClass: Record<string, string> = {
 export default function ProductCard({ product }: { product: Product }) {
   const img = product.images[0]?.url;
   const price = parseFloat(product.price);
+  const isOutOfStock = product.stock === 0;
 
   return (
     <Link
       to={`/products/${product.id}`}
-      className="group overflow-hidden rounded-2xl border border-border bg-card transition hover:shadow-lg"
+      className={`group overflow-hidden rounded-2xl border border-border bg-card transition hover:shadow-lg ${isOutOfStock ? 'opacity-70' : ''}`}
     >
       <div className="relative aspect-square overflow-hidden bg-muted">
         {img ? (
@@ -58,6 +59,14 @@ export default function ProductCard({ product }: { product: Product }) {
         >
           {typeLabels[product.type] || product.type}
         </Badge>
+        {isOutOfStock && (
+          <Badge
+            className="absolute right-3 top-3 text-[10px] font-bold tracking-wider bg-destructive text-destructive-foreground"
+            variant="destructive"
+          >
+            Out of Stock
+          </Badge>
+        )}
       </div>
       <div className="p-4">
         <h3 className="font-semibold text-sm truncate">{product.title}</h3>

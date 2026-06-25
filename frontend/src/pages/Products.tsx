@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/api';
 import ProductCard from '@/components/ProductCard';
+import AuctionCard from '@/components/AuctionCard';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
@@ -17,6 +18,18 @@ interface Product {
   seller: { displayName: string };
 }
 
+interface Auction {
+  id: string;
+  title: string;
+  startingPrice: string;
+  currentPrice: string;
+  endTime: string;
+  status: string;
+  images: { url: string; altText: string | null }[];
+  seller: { displayName: string };
+  bids: { id: string }[];
+}
+
 const typeFilters = [
   { label: 'All', value: '' },
   { label: 'Physical', value: 'PHYSICAL' },
@@ -26,6 +39,7 @@ const typeFilters = [
 
 export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [auctions, setAuctions] = useState<Auction[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
@@ -36,9 +50,14 @@ export default function Products() {
     if (search) params.search = search;
     if (typeFilter) params.type = typeFilter;
 
-    api
-      .get('/products', { params })
-      .then((res) => setProducts(res.data.products))
+    Promise.all([
+      api.get('/products', { params }).then((res) => res.data.products),
+      api.get('/bidproducts/active').then((res) => res.data.bidProducts),
+    ])
+      .then(([prods, aucts]) => {
+        setProducts(prods);
+        setAuctions(aucts);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [search, typeFilter]);
@@ -89,16 +108,38 @@ export default function Products() {
             </div>
           ))}
         </div>
-      ) : products.length === 0 ? (
-        <div className="text-center py-20">
-          <p className="text-muted-foreground text-lg">No products found.</p>
-        </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {products.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
+        <>
+          {auctions.length > 0 && (
+            <div className="mb-10">
+              <h2 className="font-display text-2xl font-bold mb-4">
+                Live Auctions
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {auctions.map((a) => (
+                  <AuctionCard key={a.id} auction={a} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {products.length === 0 && auctions.length === 0 ? (
+            <div className="text-center py-20">
+              <p className="text-muted-foreground text-lg">No products found.</p>
+            </div>
+          ) : (
+            <div>
+              <h2 className="font-display text-2xl font-bold mb-4">
+                Products
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {products.map((p) => (
+                  <ProductCard key={p.id} product={p} />
+                ))}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

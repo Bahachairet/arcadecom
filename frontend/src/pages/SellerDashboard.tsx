@@ -24,6 +24,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Plus, MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import SellerOrders from '@/pages/SellerOrders';
+import SellerReviews from '@/pages/SellerReviews';
+import SellerMessages from '@/pages/SellerMessages';
+import SellerAuctions from '@/pages/SellerAuctions';
 
 interface Product {
   id: string;
@@ -48,7 +51,7 @@ const statusVariant: Record<string, 'default' | 'secondary' | 'destructive'> = {
 export default function SellerDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'products' | 'sales'>('products');
+  const [activeTab, setActiveTab] = useState<'products' | 'sales' | 'reviews' | 'messages' | 'auctions'>('products');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -69,8 +72,18 @@ export default function SellerDashboard() {
     try {
       await api.delete(`/products/${id}`);
       setProducts((prev) => prev.filter((p) => p.id !== id));
-    } catch {
-      // handle error
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to delete product');
+    }
+  };
+
+  const handleArchive = async (id: string) => {
+    if (!confirm('Archive this product? It will no longer appear in the marketplace.')) return;
+    try {
+      const res = await api.patch(`/products/${id}/archive`);
+      setProducts((prev) => prev.map((p) => (p.id === id ? res.data.product : p)));
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to archive product');
     }
   };
 
@@ -80,7 +93,7 @@ export default function SellerDashboard() {
     <SidebarProvider>
       <AppSidebar activeTab={activeTab} onTabChange={setActiveTab} />
       <SidebarInset>
-        <SiteHeader title={activeTab === 'products' ? 'My Products' : 'Sales'} />
+        <SiteHeader title={activeTab === 'products' ? 'My Products' : activeTab === 'sales' ? 'Sales' : activeTab === 'reviews' ? 'Reviews' : activeTab === 'messages' ? 'Messages' : 'Auctions'} />
         <div className="flex-1 p-6">
           {activeTab === 'products' ? (
             <>
@@ -200,6 +213,14 @@ export default function SellerDashboard() {
                                   <Pencil className="mr-2 h-4 w-4" />
                                   Edit
                                 </DropdownMenuItem>
+                                {p.status !== 'ARCHIVED' && (
+                                  <DropdownMenuItem
+                                    onClick={() => handleArchive(p.id)}
+                                  >
+                                    <Pencil className="mr-2 h-4 w-4" />
+                                    Archive
+                                  </DropdownMenuItem>
+                                )}
                                 <DropdownMenuItem
                                   className="text-destructive"
                                   onClick={() => handleDelete(p.id)}
@@ -217,8 +238,14 @@ export default function SellerDashboard() {
                 </Card>
               )}
             </>
-          ) : (
+          ) : activeTab === 'sales' ? (
             <SellerOrders />
+          ) : activeTab === 'reviews' ? (
+            <SellerReviews />
+          ) : activeTab === 'messages' ? (
+            <SellerMessages />
+          ) : (
+            <SellerAuctions />
           )}
         </div>
       </SidebarInset>

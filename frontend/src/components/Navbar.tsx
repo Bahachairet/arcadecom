@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectItemCount, clearCartLocally } from '@/store/slices/cartSlice';
+import { fetchUnreadCount, fetchConversations } from '@/store/slices/messengerSlice';
 import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Grid3x3, Store, Shield, LogOut, Clock, ShoppingCart, Package } from 'lucide-react';
+import { MessengerSheet } from '@/components/MessengerSheet';
+import { ChatPopup } from '@/components/ChatPopup';
 import loogo from '@/assets/glogo.png';
 
 const navLinks = [
@@ -36,8 +39,17 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const dispatch = useAppDispatch();
   const itemCount = useAppSelector(selectItemCount);
+  const { openChatId, conversations } = useAppSelector((s) => s.messenger);
   const navigate = useNavigate();
   const [sellerStatus, setSellerStatus] = useState<string | null>(null);
+
+  const openConversation = conversations.find((c) => c.id === openChatId);
+
+  useEffect(() => {
+    if (!user) return;
+    dispatch(fetchUnreadCount());
+    dispatch(fetchConversations());
+  }, [user, dispatch]);
 
   useEffect(() => {
     if (user && user.role === 'buyer') {
@@ -66,17 +78,20 @@ export default function Navbar() {
       </nav>
       <div className="flex items-center gap-2">
         {user && (
-          <button
-            onClick={() => navigate('/cart')}
-            className="relative rounded-md border border-border p-2 hover:bg-muted"
-          >
-            <ShoppingCart className="h-4 w-4" />
-            {itemCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                {itemCount > 99 ? '99+' : itemCount}
-              </span>
-            )}
-          </button>
+          <>
+            <MessengerSheet />
+            <button
+              onClick={() => navigate('/cart')}
+              className="relative rounded-md border border-border p-2 hover:bg-muted"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              {itemCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                  {itemCount > 99 ? '99+' : itemCount}
+                </span>
+              )}
+            </button>
+          </>
         )}
         {user ? (
           <DropdownMenu>
@@ -159,6 +174,7 @@ export default function Navbar() {
           <Grid3x3 className="h-4 w-4" />
         </button>
       </div>
+      {openConversation && <ChatPopup conversation={openConversation} />}
     </header>
   );
 }

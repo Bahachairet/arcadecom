@@ -15,8 +15,11 @@ import ProductDetail from '@/pages/ProductDetail';
 import CartPage from '@/pages/CartPage';
 import SellerDashboard from '@/pages/SellerDashboard';
 import CreateProduct from '@/pages/CreateProduct';
+import EditProduct from '@/pages/EditProduct';
 import OrderDetail from '@/pages/OrderDetail';
 import BuyerOrders from '@/pages/BuyerOrders';
+import AuctionDetail from '@/pages/AuctionDetail';
+import CreateAuction from '@/pages/CreateAuction';
 
 function CartLoader() {
   const { user } = useAuth();
@@ -136,6 +139,20 @@ function App() {
           {/* Seller dashboard layout (self-contained sidebar) */}
           <Route path="/seller/dashboard" element={<SellerDashboard />} />
           <Route path="/seller/products/new" element={<CreateProduct />} />
+          <Route path="/seller/products/:id/edit" element={<EditProduct />} />
+          <Route path="/seller/auctions/new" element={<CreateAuction />} />
+
+          {/* Auction detail */}
+          <Route
+            path="/auctions/:id"
+            element={
+              <div className="min-h-screen flex flex-col bg-background text-foreground">
+                <Navbar />
+                <main className="flex-grow"><AuctionDetail /></main>
+                <Footer />
+              </div>
+            }
+          />
         </Routes>
         </Router>
     </AuthProvider>

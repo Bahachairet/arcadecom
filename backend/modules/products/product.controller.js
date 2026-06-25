@@ -77,4 +77,13 @@ const remove = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getById, getSellerProducts, create, update, remove };
+const archive = async (req, res) => {
+  try {
+    const product = await productService.archiveProduct(req.params.id, req.user.id);
+    return res.json({ product });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+};
+
+module.exports = { getAll, getById, getSellerProducts, create, update, remove, archive };

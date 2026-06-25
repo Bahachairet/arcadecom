@@ -118,6 +118,17 @@ const deleteProduct = async (productId, sellerId) => {
   return remove(productId);
 };
 
+const archiveProduct = async (productId, sellerId) => {
+  const existing = await findSellerProductById(productId, sellerId);
+
+  if (!existing) {
+    throw new Error("Product not found or not owned by you");
+  }
+
+  await update(productId, { status: "ARCHIVED" });
+  return findById(productId);
+};
+
 module.exports = {
   getAll,
   getById,
@@ -125,4 +136,5 @@ module.exports = {
   createProduct,
   updateProduct,
   deleteProduct,
+  archiveProduct,
 };

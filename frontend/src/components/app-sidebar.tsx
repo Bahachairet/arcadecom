@@ -2,6 +2,9 @@ import {
   IconInnerShadowTop,
   IconPackage,
   IconReceipt,
+  IconStar,
+  IconMessage,
+  IconGavel,
 } from "@tabler/icons-react"
 
 import { NavUser } from "@/components/nav-user"
@@ -17,8 +20,8 @@ import {
 import { useAuth } from "@/context/AuthContext"
 
 interface SellerSidebarProps {
-  activeTab: "products" | "sales";
-  onTabChange: (tab: "products" | "sales") => void;
+  activeTab: "products" | "sales" | "reviews" | "messages" | "auctions";
+  onTabChange: (tab: "products" | "sales" | "reviews" | "messages" | "auctions") => void;
 }
 
 export function AppSidebar({ activeTab, onTabChange, ...props }: SellerSidebarProps & React.ComponentProps<typeof Sidebar>) {
@@ -31,9 +34,24 @@ export function AppSidebar({ activeTab, onTabChange, ...props }: SellerSidebarPr
       icon: IconPackage,
     },
     {
+      id: "auctions" as const,
+      title: "Auctions",
+      icon: IconGavel,
+    },
+    {
       id: "sales" as const,
       title: "Sales",
       icon: IconReceipt,
+    },
+    {
+      id: "reviews" as const,
+      title: "Reviews",
+      icon: IconStar,
+    },
+    {
+      id: "messages" as const,
+      title: "Messages",
+      icon: IconMessage,
     },
   ];
 

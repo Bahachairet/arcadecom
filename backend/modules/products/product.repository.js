@@ -1,7 +1,7 @@
 const prisma = require("../../prisma/prisma");
 
 const findAll = async (filters = {}) => {
-  const where = { status: "ACTIVE" };
+  const where = { status: { in: ["ACTIVE", "OUT_OF_STOCK"] } };
 
   if (filters.categoryId) {
     where.categoryId = filters.categoryId;
@@ -86,7 +86,12 @@ const update = async (id, data) => {
 };
 
 const remove = async (id) => {
-  return prisma.product.delete({ where: { id } });
+  return prisma.$transaction(async (tx) => {
+    await tx.cartItem.deleteMany({ where: { productId: id } });
+    await tx.review.deleteMany({ where: { productId: id } });
+    await tx.orderItem.updateMany({ where: { productId: id }, data: { productId: null } });
+    return tx.product.delete({ where: { id } });
+  });
 };
 
 const findSellerProductById = async (id, sellerId) => {

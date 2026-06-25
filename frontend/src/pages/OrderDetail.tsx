@@ -106,7 +106,7 @@ export default function OrderDetail() {
         <div className="lg:col-span-2 space-y-4">
           {order.items.map((item) => {
             const price = parseFloat(item.unitPrice);
-            const img = item.product.images[0]?.url;
+            const img = item.product?.images[0]?.url;
 
             return (
               <Card key={item.id}>

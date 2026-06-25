@@ -48,6 +48,13 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum BidProductStatus {
+  UPCOMING
+  ACTIVE
+  ENDED
+  CANCELLED
+}
+
 model User {
   id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email         String    @unique
@@ -65,6 +72,15 @@ model User {
   products       Product[]
   cart           Cart?
   orders         Order[]       @relation("BuyerOrders")
+  reviews        Review[]
+  conversationsAsBuyer  Conversation[] @relation("BuyerConversations")
+  conversationsAsSeller Conversation[] @relation("SellerConversations")
+  messagesSent          Message[]
+  wonBids              Conversation[] @relation("BidWinners")
+  bidProducts          BidProduct[]
+  bids                 Bid[]
+  wonAuctions          BidProduct[] @relation("AuctionWinners")
+  bidProductReviews    BidProductReview[]
 
   @@map("users")
 }
@@ -137,6 +153,8 @@ model Product {
   images      ProductImage[]
   cartItems   CartItem[]
   orderItems  OrderItem[]
+  reviews     Review[]
+  conversations Conversation[]
 
   @@map("products")
 }
@@ -188,15 +206,131 @@ model Order {
 }
 
 model OrderItem {
-  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  orderId   String  @map("order_id") @db.Uuid
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId String  @map("product_id") @db.Uuid
-  product   Product @relation(fields: [productId], references: [id])
-  sellerId  String  @map("seller_id") @db.Uuid
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  orderId   String   @map("order_id") @db.Uuid
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String?  @map("product_id") @db.Uuid
+  product   Product? @relation(fields: [productId], references: [id])
+  sellerId  String   @map("seller_id") @db.Uuid
   title     String
-  unitPrice Decimal @db.Decimal(10, 2) @map("unit_price")
+  unitPrice Decimal  @db.Decimal(10, 2) @map("unit_price")
   quantity  Int
 
   @@map("order_items")
+}
+
+model Review {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id])
+  productId String   @map("product_id") @db.Uuid
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  @@unique([userId, productId])
+  @@map("reviews")
+}
+
+model Conversation {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  buyerId      String    @map("buyer_id") @db.Uuid
+  sellerId     String    @map("seller_id") @db.Uuid
+  productId    String?   @map("product_id") @db.Uuid
+  bidProductId String?   @map("bid_product_id") @db.Uuid
+  lastMessage  String?   @map("last_message")
+  lastMessageAt DateTime? @map("last_message_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  buyer        User      @relation("BuyerConversations", fields: [buyerId], references: [id])
+  seller       User      @relation("SellerConversations", fields: [sellerId], references: [id])
+  product      Product?  @relation(fields: [productId], references: [id])
+  bidProduct   BidProduct? @relation(fields: [bidProductId], references: [id])
+  messages     Message[]
+  winner       User?     @relation("BidWinners", fields: [winnerId], references: [id])
+
+  winnerId     String?  @map("winner_id") @db.Uuid
+
+  @@unique([buyerId, sellerId, productId, bidProductId])
+  @@map("conversations")
+}
+
+model Message {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversationId  String    @map("conversation_id") @db.Uuid
+  senderId        String    @map("sender_id") @db.Uuid
+  content         String
+  createdAt       DateTime  @default(now()) @map("created_at")
+  readAt          DateTime? @map("read_at")
+
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender          User         @relation(fields: [senderId], references: [id])
+
+  @@map("messages")
+}
+
+model BidProduct {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sellerId       String           @map("seller_id") @db.Uuid
+  title          String
+  description    String?
+  startingPrice  Decimal          @db.Decimal(10, 2) @map("starting_price")
+  minIncrement   Decimal          @db.Decimal(10, 2) @map("min_increment")
+  currentPrice   Decimal          @db.Decimal(10, 2) @map("current_price")
+  startTime      DateTime         @map("start_time")
+  endTime        DateTime         @map("end_time")
+  status         BidProductStatus @default(UPCOMING)
+  winnerId       String?          @map("winner_id") @db.Uuid
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @default(now()) @map("updated_at")
+
+  seller         User             @relation(fields: [sellerId], references: [id])
+  winner         User?            @relation("AuctionWinners", fields: [winnerId], references: [id])
+  images         BidProductImage[]
+  bids           Bid[]
+  conversations  Conversation[]
+  reviews        BidProductReview[]
+
+  @@map("bid_products")
+}
+
+model BidProductImage {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bidProductId  String     @map("bid_product_id") @db.Uuid
+  url           String
+  altText       String?    @map("alt_text")
+
+  bidProduct    BidProduct @relation(fields: [bidProductId], references: [id], onDelete: Cascade)
+
+  @@map("bid_product_images")
+}
+
+model Bid {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bidProductId  String     @map("bid_product_id") @db.Uuid
+  bidderId      String     @map("bidder_id") @db.Uuid
+  amount        Decimal    @db.Decimal(10, 2)
+  createdAt     DateTime   @default(now()) @map("created_at")
+
+  bidProduct    BidProduct @relation(fields: [bidProductId], references: [id], onDelete: Cascade)
+  bidder        User       @relation(fields: [bidderId], references: [id])
+
+  @@map("bids")
+}
+
+model BidProductReview {
+  id            String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId        String     @map("user_id") @db.Uuid
+  user          User       @relation(fields: [userId], references: [id])
+  bidProductId  String     @map("bid_product_id") @db.Uuid
+  bidProduct    BidProduct @relation(fields: [bidProductId], references: [id], onDelete: Cascade)
+  rating        Int
+  comment       String?
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @default(now()) @map("updated_at")
+
+  @@unique([userId, bidProductId])
+  @@map("bid_product_reviews")
 }

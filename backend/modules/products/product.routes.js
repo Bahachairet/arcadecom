@@ -31,4 +31,11 @@ router.delete(
   productController.remove
 );
 
+router.patch(
+  "/:id/archive",
+  requireAuth,
+  requireRole("seller"),
+  productController.archive
+);
+
 module.exports = router;

@@ -11,6 +11,12 @@ const categoryRoutes = require('../modules/categories/category.routes');
 const productRoutes = require('../modules/products/product.routes');
 const cartRoutes = require('../modules/cart/cart.routes');
 const orderRoutes = require('../modules/orders/order.routes');
+const reviewRoutes = require('../modules/reviews/review.routes');
+const conversationRoutes = require('../modules/conversations/conversation.routes');
+const messageRoutes = require('../modules/messages/message.routes');
+const bidProductRoutes = require('../modules/bidproducts/bidproduct.routes');
+const bidRoutes = require('../modules/bids/bid.routes');
+const bidProductReviewRoutes = require('../modules/bidproduct-reviews/bidproduct-review.routes');
 const passport = require(
   "../config/passport"
 );
@@ -40,5 +46,11 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/reviews', reviewRoutes);
+app.use('/api/conversations', conversationRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/bidproducts', bidProductRoutes);
+app.use('/api/bids', bidRoutes);
+app.use('/api/bidproduct-reviews', bidProductReviewRoutes);
 
 module.exports = app;
