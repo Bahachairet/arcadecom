@@ -141,7 +141,7 @@ export default function FilterSidebar({ filters, onChange, onClear }: FilterSide
     filters.minRating > 0;
 
   return (
-    <aside className="w-60 shrink-0">
+    <aside className="w-60 shrink-0 h-full">
       <div className="sticky top-20 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

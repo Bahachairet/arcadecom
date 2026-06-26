@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { addItemToCart, selectCartLoading } from '@/store/slices/cartSlice';
+import { addItemToCart, selectCart, selectCartLoading } from '@/store/slices/cartSlice';
 import { createConversation, openChat } from '@/store/slices/messengerSlice';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -81,6 +81,7 @@ export default function ProductDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const dispatch = useAppDispatch();
+  const cart = useAppSelector(selectCart);
   const cartLoading = useAppSelector(selectCartLoading);
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -174,7 +175,7 @@ export default function ProductDetail() {
 
   const config = typeConfig[product.type] || typeConfig.PHYSICAL;
   const price = parseFloat(product.price);
-  const isUnique = product.type === 'COLLECTIBLE' || product.stock === 1;
+  const isInCart = cart?.items.some((item) => item.product.id === product.id) || false;
 
   return (
     <div className="px-6 py-8">
@@ -238,8 +239,8 @@ export default function ProductDetail() {
           <div className="border-2 border-t-0 border-ink bg-canvas p-4 space-y-3">
             {product.stock === 0 ? (
               <Button className="w-full rounded-none border-2 border-ink bg-canvas text-ink font-bold uppercase" size="lg" disabled>Out of Stock</Button>
-            ) : isUnique ? (
-              <Button className="w-full rounded-none border-2 border-ink bg-canvas text-ink font-bold uppercase" size="lg" disabled>1 of 1 — Unique Item</Button>
+            ) : isInCart ? (
+              <Button className="w-full rounded-none border-2 border-ink bg-canvas text-ink font-bold uppercase" size="lg" disabled>In Your Cart</Button>
             ) : (
               <Button
                 className="w-full rounded-none border-2 border-ink bg-ink text-canvas font-bold uppercase"
