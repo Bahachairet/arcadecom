@@ -20,6 +20,9 @@ import OrderDetail from '@/pages/OrderDetail';
 import BuyerOrders from '@/pages/BuyerOrders';
 import AuctionDetail from '@/pages/AuctionDetail';
 import CreateAuction from '@/pages/CreateAuction';
+import BidsPage from '@/pages/BidsPage';
+import AboutUs from '@/pages/AboutUs';
+import ContactUs from '@/pages/ContactUs';
 
 function CartLoader() {
   const { user } = useAuth();
@@ -149,6 +152,36 @@ function App() {
               <div className="min-h-screen flex flex-col bg-background text-foreground">
                 <Navbar />
                 <main className="flex-grow"><AuctionDetail /></main>
+                <Footer />
+              </div>
+            }
+          />
+          <Route
+            path="/bids"
+            element={
+              <div className="min-h-screen flex flex-col bg-background text-foreground">
+                <Navbar />
+                <main className="flex-grow"><BidsPage /></main>
+                <Footer />
+              </div>
+            }
+          />
+          <Route
+            path="/about"
+            element={
+              <div className="min-h-screen flex flex-col bg-background text-foreground">
+                <Navbar />
+                <main className="flex-grow"><AboutUs /></main>
+                <Footer />
+              </div>
+            }
+          />
+          <Route
+            path="/contact"
+            element={
+              <div className="min-h-screen flex flex-col bg-background text-foreground">
+                <Navbar />
+                <main className="flex-grow"><ContactUs /></main>
                 <Footer />
               </div>
             }

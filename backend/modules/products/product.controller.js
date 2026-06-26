@@ -7,11 +7,17 @@ const getAll = async (req, res) => {
       type: req.query.type,
       search: req.query.search,
       sort: req.query.sort,
+      page: req.query.page,
       limit: req.query.limit,
+      minPrice: req.query.minPrice,
+      maxPrice: req.query.maxPrice,
+      sellerId: req.query.sellerId,
+      sellerName: req.query.sellerName,
+      minRating: req.query.minRating,
     };
 
-    const products = await productService.getAll(filters);
-    return res.json({ products, total: products.length });
+    const result = await productService.getAll(filters);
+    return res.json(result);
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

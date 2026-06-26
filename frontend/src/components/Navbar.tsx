@@ -25,11 +25,12 @@ import {
 } from 'lucide-react';
 import { MessengerSheet } from '@/components/MessengerSheet';
 import { ChatPopup } from '@/components/ChatPopup';
+import CartDrawer from '@/components/CartDrawer';
 import loogo from '@/assets/glogo.png';
 
 const navLinks = [
   { label: 'Products', href: '/products' },
-  { label: 'Rare Items', href: '/products?type=AUCTION' },
+  { label: 'Rare Items', href: '/bids' },
   { label: 'About Us', href: '/about' },
   { label: 'Contact Us', href: '/contact' },
 ];
@@ -52,6 +53,7 @@ export default function Navbar() {
   const [sellerStatus, setSellerStatus] = useState<string | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [messengerOpen, setMessengerOpen] = useState(false);
+  const [cartDrawerOpen, setCartDrawerOpen] = useState(false);
 
   const openConversation = conversations.find((c) => c.id === openChatId);
 
@@ -75,7 +77,7 @@ export default function Navbar() {
   }, [user]);
 
   return (
-    <header className="border-b border-border bg-background">
+    <header className="sticky top-0 z-50 border-b border-border bg-background">
       <div className="mx-auto flex max-w-[1800px] items-center justify-between px-4 py-4">
         {/* LEFT: Logo first */}
         <Link to="/" className="flex shrink-0 items-center">
@@ -100,7 +102,7 @@ export default function Navbar() {
           {user && (
             <>
               <button
-                onClick={() => navigate('/cart')}
+                onClick={() => setCartDrawerOpen(true)}
                 className="relative border border-border p-2 hover:bg-muted"
               >
                 <ShoppingCart className="h-4 w-4" />
@@ -120,7 +122,7 @@ export default function Navbar() {
                   {getInitials(user.displayName)}
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-background border-border">
+              <DropdownMenuContent align="end" className="w-56">
                 <div className="px-2 py-1.5">
                   <p className="text-sm font-bold">{user.displayName}</p>
                   <p className="text-xs text-muted-foreground">{user.email}</p>
@@ -225,6 +227,7 @@ export default function Navbar() {
 
       {openConversation && <ChatPopup conversation={openConversation} />}
       {user && <MessengerSheet open={messengerOpen} onOpenChange={setMessengerOpen} />}
+      {user && <CartDrawer open={cartDrawerOpen} onClose={() => setCartDrawerOpen(false)} />}
     </header>
   );
 }

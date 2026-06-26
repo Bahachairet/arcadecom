@@ -18,6 +18,8 @@
   --color-accent-purple: var(--accent-purple);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --font-display: "Arial Black", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-serif: "Times New Roman", Times, serif;
@@ -56,6 +58,8 @@
   --accent-purple: #6a26a4;
   --card: #ffffff;
   --card-foreground: #000000;
+  --popover: #ffffff;
+  --popover-foreground: #000000;
   /* Frame & Surface */
   --frame-ink: #000000;
   --canvas: #ffffff;

@@ -22,16 +22,26 @@ interface ItemCardProps {
   showNew?: boolean;
 }
 
-const typeConfig: Record<ItemType, { icon: typeof Tag; tint: string }> = {
-  product: { icon: Tag, tint: 'bg-tint-sage' },
-  auction: { icon: Gavel, tint: 'bg-tint-salmon' },
-  bid: { icon: ArrowUpRight, tint: 'bg-tint-periwinkle' },
+const typeConfig: Record<ItemType, { icon: typeof Tag }> = {
+  product: { icon: Tag },
+  auction: { icon: Gavel },
+  bid: { icon: Gavel },
+};
+
+const badgeTints: Record<string, string> = {
+  Physical: 'bg-tint-lime',
+  Digital: 'bg-tint-sky',
+  Collectible: 'bg-tint-peach',
+  Bid: 'bg-tint-salmon',
 };
 
 function getDefaultBadge(type: ItemType, productType?: ProductType): string {
-  if (type === 'auction') return 'Rare find';
-  if (type === 'bid') return 'Open bid';
+  if (type === 'auction' || type === 'bid') return 'Bid';
   return productType || 'Collectible';
+}
+
+function getBadgeTint(badgeLabel: string): string {
+  return badgeTints[badgeLabel] || 'bg-tint-sage';
 }
 
 const surfaceVariantClasses: Record<ColorVariant, string> = {
@@ -73,7 +83,7 @@ export default function ItemCard({
   const dark = isDarkVariant(colorVariant);
   const badgeLabel = badge || getDefaultBadge(type, productType);
 
-  const href = type === 'auction' ? `/auctions/${id}` : `/products/${id}`;
+  const href = (type === 'auction' || type === 'bid') ? `/auctions/${id}` : `/products/${id}`;
 
   const mutedText = dark ? 'text-white/60' : 'text-foreground/60';
   const borderTint = dark ? 'border-white/15' : 'border-foreground/15';
@@ -98,7 +108,7 @@ export default function ItemCard({
 
           {/* Type badge — top left */}
           <span
-            className={`absolute left-0 top-0 flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold tracking-wider text-ink ${config.tint}`}
+            className={`absolute left-0 top-0 flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold tracking-wider text-ink ${getBadgeTint(badgeLabel)}`}
           >
             <TypeIcon className="h-3 w-3" />
             {badgeLabel}
@@ -165,16 +175,6 @@ export default function ItemCard({
           <span className="flex items-center gap-1 text-xs font-semibold text-foreground transition-colors group-hover:text-primary">
             View details <ArrowUpRight className="h-3 w-3" />
           </span>
-          {type === 'auction' && (
-            <span className="rounded-full border border-border px-2.5 py-0.5 text-[10px] font-semibold">
-              Bid
-            </span>
-          )}
-          {type === 'bid' && (
-            <span className="rounded-full border border-border px-2.5 py-0.5 text-[10px] font-semibold">
-              Place Bid
-            </span>
-          )}
         </div>
       </article>
     </Link>

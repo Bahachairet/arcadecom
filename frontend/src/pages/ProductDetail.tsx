@@ -5,9 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { addItemToCart, selectCartLoading } from '@/store/slices/cartSlice';
 import { createConversation, openChat } from '@/store/slices/messengerSlice';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Package, Download, Gem, CheckCircle, Star, Trash2, MessageSquare } from 'lucide-react';
 
@@ -45,10 +43,10 @@ interface ReviewSummary {
   count: number;
 }
 
-const typeConfig: Record<string, { label: string; icon: React.ReactNode; badge: string }> = {
-  PHYSICAL: { label: 'Physical Product', icon: <Package className="h-4 w-4" />, badge: 'bg-[oklch(0.85_0.2_142)] text-black' },
-  DIGITAL: { label: 'Digital Product', icon: <Download className="h-4 w-4" />, badge: 'bg-[oklch(0.55_0.24_265)] text-white' },
-  COLLECTIBLE: { label: 'Collectible', icon: <Gem className="h-4 w-4" />, badge: 'bg-[oklch(0.88_0.18_92)] text-black' },
+const typeConfig: Record<string, { label: string; icon: React.ReactNode; badgeBg: string }> = {
+  PHYSICAL: { label: 'Physical Product', icon: <Package className="h-3 w-3" />, badgeBg: 'bg-tint-lime' },
+  DIGITAL: { label: 'Digital Product', icon: <Download className="h-3 w-3" />, badgeBg: 'bg-tint-sky' },
+  COLLECTIBLE: { label: 'Collectible', icon: <Gem className="h-3 w-3" />, badgeBg: 'bg-tint-peach' },
 };
 
 const API_BASE = 'http://localhost:5000';
@@ -100,46 +98,28 @@ export default function ProductDetail() {
 
   useEffect(() => {
     if (!id) return;
-    api
-      .get(`/products/${id}`)
-      .then((res) => setProduct(res.data.product))
-      .catch(() => {})
-      .finally(() => setLoading(false));
+    api.get(`/products/${id}`).then((res) => setProduct(res.data.product)).catch(() => {}).finally(() => setLoading(false));
   }, [id]);
 
   useEffect(() => {
     if (!id) return;
     setReviewsLoading(true);
-    api
-      .get(`/reviews/product/${id}`)
-      .then((res) => {
-        setReviews(res.data.reviews);
-        setSummary(res.data.summary);
-        if (user) {
-          const mine = res.data.reviews.find((r: Review) => r.user.id === user.id);
-          if (mine) {
-            setExistingReview(mine);
-            setMyRating(mine.rating);
-            setMyComment(mine.comment || '');
-          }
-        }
-      })
-      .catch(() => {})
-      .finally(() => setReviewsLoading(false));
+    api.get(`/reviews/product/${id}`).then((res) => {
+      setReviews(res.data.reviews);
+      setSummary(res.data.summary);
+      if (user) {
+        const mine = res.data.reviews.find((r: Review) => r.user.id === user.id);
+        if (mine) { setExistingReview(mine); setMyRating(mine.rating); setMyComment(mine.comment || ''); }
+      }
+    }).catch(() => {}).finally(() => setReviewsLoading(false));
   }, [id, user]);
 
   useEffect(() => {
     if (!user || !id) return;
-    api
-      .get('/orders/my-orders')
-      .then((res) => {
-        const purchased = res.data.orders.some((order: any) =>
-          order.status === 'COMPLETED' &&
-          order.items.some((item: any) => item.productId === id)
-        );
-        setHasPurchased(purchased);
-      })
-      .catch(() => {});
+    api.get('/orders/my-orders').then((res) => {
+      const purchased = res.data.orders.some((order: any) => order.status === 'COMPLETED' && order.items.some((item: any) => item.productId === id));
+      setHasPurchased(purchased);
+    }).catch(() => {});
   }, [user, id]);
 
   const handleSubmitReview = async () => {
@@ -147,58 +127,36 @@ export default function ProductDetail() {
     setSubmitting(true);
     try {
       if (existingReview) {
-        const res = await api.patch(`/reviews/${existingReview.id}`, {
-          rating: myRating,
-          comment: myComment || undefined,
-        });
+        const res = await api.patch(`/reviews/${existingReview.id}`, { rating: myRating, comment: myComment || undefined });
         setReviews((prev) => prev.map((r) => (r.id === existingReview.id ? res.data.review : r)));
         setExistingReview(res.data.review);
       } else {
-        const res = await api.post(`/reviews/product/${id}`, {
-          rating: myRating,
-          comment: myComment || undefined,
-        });
+        const res = await api.post(`/reviews/product/${id}`, { rating: myRating, comment: myComment || undefined });
         setReviews((prev) => [res.data.review, ...prev]);
         setExistingReview(res.data.review);
-        setSummary((prev) => ({
-          average: (prev.average * prev.count + myRating) / (prev.count + 1),
-          count: prev.count + 1,
-        }));
+        setSummary((prev) => ({ average: (prev.average * prev.count + myRating) / (prev.count + 1), count: prev.count + 1 }));
       }
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to submit review');
-    } finally {
-      setSubmitting(false);
-    }
+    } catch (err: any) { alert(err.response?.data?.message || 'Failed to submit review'); } finally { setSubmitting(false); }
   };
 
   const handleDeleteReview = async () => {
-    if (!existingReview) return;
-    if (!confirm('Delete your review?')) return;
+    if (!existingReview || !confirm('Delete your review?')) return;
     try {
       await api.delete(`/reviews/${existingReview.id}`);
       setReviews((prev) => prev.filter((r) => r.id !== existingReview.id));
-      setExistingReview(null);
-      setMyRating(0);
-      setMyComment('');
-      setSummary((prev) => ({
-        average: prev.count > 1 ? (prev.average * prev.count - existingReview.rating) / (prev.count - 1) : 0,
-        count: prev.count - 1,
-      }));
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to delete review');
-    }
+      setExistingReview(null); setMyRating(0); setMyComment('');
+      setSummary((prev) => ({ average: prev.count > 1 ? (prev.average * prev.count - existingReview.rating) / (prev.count - 1) : 0, count: prev.count - 1 }));
+    } catch (err: any) { alert(err.response?.data?.message || 'Failed to delete review'); }
   };
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-[1800px] px-6 py-10">
-        <div className="animate-pulse grid grid-cols-1 lg:grid-cols-2 gap-10">
-          <div className="aspect-square bg-muted rounded-2xl" />
-          <div className="space-y-4">
-            <div className="h-8 bg-muted rounded w-3/4" />
-            <div className="h-4 bg-muted rounded w-1/2" />
-            <div className="h-12 bg-muted rounded w-1/3" />
+      <div className="px-6 py-10">
+        <div className="animate-pulse space-y-4">
+          <div className="h-4 bg-muted rounded w-32" />
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-10">
+            <div className="aspect-square bg-muted" />
+            <div className="space-y-4"><div className="h-8 bg-muted rounded w-3/4" /><div className="h-12 bg-muted rounded w-1/3" /></div>
           </div>
         </div>
       </div>
@@ -207,262 +165,167 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <div className="mx-auto max-w-[1800px] px-6 py-20 text-center">
-        <p className="text-muted-foreground text-lg">Product not found.</p>
-        <Link to="/products" className="text-primary hover:underline mt-4 inline-block">
-          Back to products
-        </Link>
+      <div className="px-6 py-20 text-center">
+        <p className="text-lg">Product not found.</p>
+        <Link to="/products" className="text-link hover:underline mt-4 inline-block">Back to products</Link>
       </div>
     );
   }
 
   const config = typeConfig[product.type] || typeConfig.PHYSICAL;
   const price = parseFloat(product.price);
+  const isUnique = product.type === 'COLLECTIBLE' || product.stock === 1;
 
   return (
-    <div className="mx-auto max-w-[1800px] px-6 py-10">
-      <Link
-        to="/products"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-6"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        Back to products
+    <div className="px-6 py-8">
+      <Link to="/products" className="inline-flex items-center gap-1 text-sm text-link hover:underline mb-6">
+        <ArrowLeft className="h-4 w-4" /> Back to products
       </Link>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        {/* Images */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-10">
+        {/* Image — smaller, bevel shadow */}
         <div>
-          <div className="aspect-square rounded-2xl overflow-hidden bg-muted border border-border">
+          <div className="aspect-square overflow-hidden bg-canvas border-2 border-ink" style={{ filter: 'drop-shadow(4px 4px 0 #000)' }}>
             {product.images.length > 0 ? (
-              <img
-                src={`${API_BASE}${product.images[selectedImage].url}`}
-                alt={product.images[selectedImage].altText || product.title}
-                className="h-full w-full object-cover"
-              />
+              <img src={`${API_BASE}${product.images[selectedImage].url}`} alt={product.images[selectedImage].altText || product.title} className="h-full w-full object-cover" />
             ) : (
-              <div className="flex h-full items-center justify-center text-muted-foreground">
-                No image
-              </div>
+              <div className="flex h-full items-center justify-center text-muted-foreground">No image</div>
             )}
           </div>
           {product.images.length > 1 && (
-            <div className="flex gap-2 mt-4">
+            <div className="flex gap-2 mt-3">
               {product.images.map((img, i) => (
-                <button
-                  key={img.id}
-                  onClick={() => setSelectedImage(i)}
-                  className={`h-16 w-16 rounded-lg overflow-hidden border-2 ${
-                    i === selectedImage ? 'border-primary' : 'border-border'
-                  }`}
-                >
-                  <img
-                    src={`${API_BASE}${img.url}`}
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
+                <button key={img.id} onClick={() => setSelectedImage(i)} className={`h-14 w-14 overflow-hidden border-2 ${i === selectedImage ? 'border-ink' : 'border-border'}`}>
+                  <img src={`${API_BASE}${img.url}`} alt="" className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>
           )}
         </div>
 
-        {/* Details */}
+        {/* Details — black & white ribbon-card */}
         <div>
-          <Badge className={`text-[10px] font-bold tracking-wider mb-3 ${config.badge}`}>
-            {config.label}
-          </Badge>
-          <h1 className="font-display text-3xl font-bold mb-1">{product.title}</h1>
-          <p className="text-sm text-muted-foreground mb-4">
-            {product.category.name} · by {product.seller.displayName}
-          </p>
-
-          <div className="flex items-center gap-3 mb-6">
-            <p className="font-display text-4xl font-bold">${price.toFixed(2)}</p>
-            {summary.count > 0 && (
-              <div className="flex items-center gap-1.5">
-                <StarRating rating={Math.round(summary.average)} />
-                <span className="text-sm text-muted-foreground">
-                  {summary.average.toFixed(1)} ({summary.count})
-                </span>
-              </div>
-            )}
+          {/* Colored type badge bar */}
+          <div className={`${config.badgeBg} border-2 border-ink px-3 py-1.5 flex items-center gap-2`}>
+            {config.icon}
+            <span className="text-xs font-bold uppercase tracking-wider">{config.label}</span>
           </div>
 
-          <div className="rounded-xl border border-border p-4 mb-6 space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Status</span>
-              <Badge variant={product.status === 'ACTIVE' ? 'default' : 'secondary'}>
-                {product.status}
-              </Badge>
+          {/* White body */}
+          <div className="border-2 border-t-0 border-ink bg-canvas px-4 py-4">
+            <h1 className="font-heading text-2xl font-bold uppercase mb-1">{product.title}</h1>
+            <p className="text-sm text-muted-foreground mb-4">{product.category.name} · by {product.seller.displayName}</p>
+
+            <div className="flex items-center gap-4 mb-4">
+              <span className="font-heading text-3xl font-bold">${price.toFixed(2)}</span>
+              {summary.count > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <StarRating rating={Math.round(summary.average)} />
+                  <span className="text-sm text-muted-foreground">{summary.average.toFixed(1)} ({summary.count})</span>
+                </div>
+              )}
             </div>
-            {product.type === 'PHYSICAL' && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Stock</span>
-                <span>{product.stock} available</span>
-              </div>
+
+            <div className="border-t-2 border-ink pt-3 space-y-2">
+              <div className="flex justify-between text-sm"><span className="font-bold uppercase">Status</span><span className="font-bold">{product.status}</span></div>
+              {product.type === 'PHYSICAL' && <div className="flex justify-between text-sm"><span className="font-bold uppercase">Stock</span><span>{product.stock === 1 ? '1 of 1 — Unique' : `${product.stock} available`}</span></div>}
+              {product.type === 'DIGITAL' && <div className="flex justify-between text-sm"><span className="font-bold uppercase">Delivery</span><span>Instant download</span></div>}
+              {product.type === 'COLLECTIBLE' && <div className="flex justify-between text-sm"><span className="font-bold uppercase">Edition</span><span>1 of 1 — Unique</span></div>}
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="border-2 border-t-0 border-ink bg-canvas p-4 space-y-3">
+            {product.stock === 0 ? (
+              <Button className="w-full rounded-none border-2 border-ink bg-canvas text-ink font-bold uppercase" size="lg" disabled>Out of Stock</Button>
+            ) : isUnique ? (
+              <Button className="w-full rounded-none border-2 border-ink bg-canvas text-ink font-bold uppercase" size="lg" disabled>1 of 1 — Unique Item</Button>
+            ) : (
+              <Button
+                className="w-full rounded-none border-2 border-ink bg-ink text-canvas font-bold uppercase"
+                size="lg"
+                disabled={cartLoading || added}
+                onClick={async () => {
+                  if (!user) { navigate('/login'); return; }
+                  await dispatch(addItemToCart({ productId: product.id }));
+                  setAdded(true); setTimeout(() => setAdded(false), 2000);
+                }}
+              >
+                {added ? <><CheckCircle className="mr-2 h-4 w-4" /> Added to Cart</> : cartLoading ? 'Adding...' : 'Add to Cart'}
+              </Button>
             )}
-            {product.type === 'DIGITAL' && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Delivery</span>
-                <span>Instant download</span>
-              </div>
-            )}
-            {product.type === 'COLLECTIBLE' && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Edition</span>
-                <span>1 of 1 — Unique</span>
-              </div>
+
+            {user && user.id !== product.seller.id && (
+              <Button
+                variant="outline"
+                className="w-full rounded-none border-2 border-ink bg-canvas text-ink font-bold uppercase"
+                size="lg"
+                onClick={async () => {
+                  const res = await dispatch(createConversation({ sellerId: product.seller.id, productId: product.id })).unwrap();
+                  dispatch(openChat(res.id));
+                }}
+              >
+                <MessageSquare className="mr-2 h-4 w-4" /> Message Seller
+              </Button>
             )}
           </div>
 
-          {product.stock === 0 ? (
-            <Button
-              className="w-full"
-              size="lg"
-              disabled
-              variant="outline"
-            >
-              Out of Stock
-            </Button>
-          ) : (
-            <Button
-              className="w-full"
-              size="lg"
-              disabled={cartLoading || added}
-              onClick={async () => {
-                if (!user) {
-                  navigate('/login');
-                  return;
-                }
-                await dispatch(addItemToCart({ productId: product.id }));
-                setAdded(true);
-                setTimeout(() => setAdded(false), 2000);
-              }}
-            >
-              {added ? (
-                <><CheckCircle className="mr-2 h-4 w-4" /> Added to Cart</>
-              ) : cartLoading ? 'Adding...' : 'Add to Cart'}
-            </Button>
+          {/* Description */}
+          {product.description && (
+            <div className="mt-6">
+              <div className="bg-canvas border-2 border-ink border-b-0 px-4 py-2">
+                <span className="font-bold uppercase text-sm">Description</span>
+              </div>
+              <div className="bg-canvas border-2 border-ink px-4 py-3">
+                <p className="text-sm leading-relaxed whitespace-pre-line">{product.description}</p>
+              </div>
+            </div>
           )}
-
-          {user && user.id !== product.seller.id && (
-            <Button
-              variant="outline"
-              className="w-full mt-3"
-              size="lg"
-              onClick={async () => {
-                const res = await dispatch(
-                  createConversation({
-                    sellerId: product.seller.id,
-                    productId: product.id,
-                  })
-                ).unwrap();
-                dispatch(openChat(res.id));
-              }}
-            >
-              <MessageSquare className="mr-2 h-4 w-4" />
-              Message Seller
-            </Button>
-          )}
-
-          <div className="mt-8">
-            <h3 className="font-semibold text-sm mb-2">Description</h3>
-            <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-              {product.description}
-            </p>
-          </div>
         </div>
       </div>
 
-      {/* Reviews Section */}
-      <div className="mt-16 border-t border-border pt-10">
-        <h2 className="font-display text-2xl font-bold mb-6">
-          Reviews{summary.count > 0 && ` (${summary.count})`}
-        </h2>
-
-        {/* Review Form */}
-        {user && hasPurchased && (
-          <Card className="mb-8">
-            <CardContent className="p-6">
-              <h3 className="font-semibold mb-4">
-                {existingReview ? 'Edit your review' : 'Write a review'}
-              </h3>
-              <div className="flex items-center gap-3 mb-4">
-                <span className="text-sm text-muted-foreground">Rating</span>
-                <StarRating rating={myRating} onRate={setMyRating} interactive />
-              </div>
-              <Textarea
-                placeholder="Share your experience with this product (optional)"
-                value={myComment}
-                onChange={(e) => setMyComment(e.target.value)}
-                className="mb-4"
-              />
+      {/* Reviews */}
+      <div className="mt-12">
+        <div className="bg-canvas border-2 border-ink border-b-0 px-4 py-2">
+          <span className="font-bold uppercase text-sm">Reviews{summary.count > 0 && ` (${summary.count})`}</span>
+        </div>
+        <div className="bg-canvas border-2 border-ink px-4 py-4">
+          {user && hasPurchased && (
+            <div className="mb-6 border-2 border-ink p-4">
+              <h3 className="font-bold uppercase text-sm mb-3">{existingReview ? 'Edit your review' : 'Write a review'}</h3>
+              <div className="flex items-center gap-3 mb-3"><span className="text-sm font-bold uppercase">Rating</span><StarRating rating={myRating} onRate={setMyRating} interactive /></div>
+              <Textarea placeholder="Share your experience (optional)" value={myComment} onChange={(e) => setMyComment(e.target.value)} className="mb-3 rounded-none border-2 border-ink" />
               <div className="flex gap-2">
-                <Button
-                  onClick={handleSubmitReview}
-                  disabled={myRating === 0 || submitting}
-                >
-                  {submitting ? 'Submitting...' : existingReview ? 'Update Review' : 'Submit Review'}
+                <Button onClick={handleSubmitReview} disabled={myRating === 0 || submitting} className="rounded-none border-2 border-ink bg-ink text-canvas font-bold uppercase">
+                  {submitting ? 'Submitting...' : existingReview ? 'Update' : 'Submit'}
                 </Button>
-                {existingReview && (
-                  <Button variant="destructive" onClick={handleDeleteReview}>
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Delete
-                  </Button>
-                )}
+                {existingReview && <Button variant="destructive" onClick={handleDeleteReview} className="rounded-none border-2 border-ink"><Trash2 className="h-4 w-4 mr-1" /> Delete</Button>}
               </div>
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
+          {user && !hasPurchased && <p className="text-sm text-muted-foreground mb-6">Purchase this product to leave a review.</p>}
+          {!user && <p className="text-sm text-muted-foreground mb-6"><button className="underline hover:text-foreground" onClick={() => navigate('/login')}>Log in</button> to leave a review.</p>}
 
-        {user && !hasPurchased && (
-          <p className="text-sm text-muted-foreground mb-8">
-            Purchase this product to leave a review.
-          </p>
-        )}
-
-        {!user && (
-          <p className="text-sm text-muted-foreground mb-8">
-            <button className="underline hover:text-foreground" onClick={() => navigate('/login')}>
-              Log in
-            </button>{' '}
-            to leave a review.
-          </p>
-        )}
-
-        {/* Reviews List */}
-        {reviewsLoading ? (
-          <div className="space-y-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-24 bg-muted rounded animate-pulse" />
-            ))}
-          </div>
-        ) : reviews.length === 0 ? (
-          <p className="text-muted-foreground">No reviews yet. Be the first to review this product.</p>
-        ) : (
-          <div className="space-y-4">
-            {reviews.map((review) => (
-              <Card key={review.id}>
-                <CardContent className="p-4">
+          {reviewsLoading ? (
+            <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-20 bg-muted animate-pulse" />)}</div>
+          ) : reviews.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No reviews yet.</p>
+          ) : (
+            <div className="space-y-3">
+              {reviews.map((review) => (
+                <div key={review.id} className="border-2 border-ink p-3">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium text-sm">{review.user.displayName}</span>
-                        <StarRating rating={review.rating} />
-                      </div>
-                      {review.comment && (
-                        <p className="text-sm text-muted-foreground">{review.comment}</p>
-                      )}
+                      <div className="flex items-center gap-2 mb-1"><span className="font-bold text-sm">{review.user.displayName}</span><StarRating rating={review.rating} /></div>
+                      {review.comment && <p className="text-sm text-muted-foreground">{review.comment}</p>}
                     </div>
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">
-                      {new Date(review.createdAt).toLocaleDateString()}
-                    </span>
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">{new Date(review.createdAt).toLocaleDateString()}</span>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
