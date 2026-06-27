@@ -2,6 +2,7 @@ import {
   IconLayoutDashboard,
   IconTags,
   IconUsers,
+  IconUserCircle,
   IconInnerShadowTop,
 } from "@tabler/icons-react"
 
@@ -20,6 +21,7 @@ import {
 
 const navItems = [
   { title: "Overview", url: "overview", icon: IconLayoutDashboard },
+  { title: "Users", url: "users", icon: IconUserCircle },
   { title: "Categories", url: "categories", icon: IconTags },
   { title: "Seller Applications", url: "sellers", icon: IconUsers },
 ]

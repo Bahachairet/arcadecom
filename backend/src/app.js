@@ -17,6 +17,8 @@ const messageRoutes = require('../modules/messages/message.routes');
 const bidProductRoutes = require('../modules/bidproducts/bidproduct.routes');
 const bidRoutes = require('../modules/bids/bid.routes');
 const bidProductReviewRoutes = require('../modules/bidproduct-reviews/bidproduct-review.routes');
+const statsRoutes = require('../modules/stats/stats.routes');
+const userRoutes = require('../modules/users/user.routes');
 const passport = require(
   "../config/passport"
 );
@@ -52,5 +54,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/bidproducts', bidProductRoutes);
 app.use('/api/bids', bidRoutes);
 app.use('/api/bidproduct-reviews', bidProductReviewRoutes);
+app.use('/api/stats', statsRoutes);
+app.use('/api/users', userRoutes);
 
 module.exports = app;
